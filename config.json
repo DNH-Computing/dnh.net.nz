@@ -1,0 +1,11 @@
+{
+  "filenameTemplate": ":file",
+  "defaultTemplate": "template.html",
+  "plugins": [
+    "wintersmith-nunjucks",
+    "./lib/preview_as_html"
+  ],
+  "markdown": {
+    "xhtml": true
+  }
+}

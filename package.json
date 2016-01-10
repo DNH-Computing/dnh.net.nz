@@ -1,0 +1,9 @@
+{
+  "name": "dnh.net.nz",
+  "version": "1.0.0",
+  "description": "Wintersmith Site for dnh.net.nz",
+  "dependencies": {
+    "wintersmith": "^2.2.5",
+    "wintersmith-nunjucks": "^1.1.0"
+  }
+}

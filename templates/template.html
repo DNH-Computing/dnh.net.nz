@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+    {% set titleBreadcrumbs = page.metadata.titleBreadcrumbs or [page.title] %}
+    <title>{% for piece in titleBreadcrumbs %}{{ piece }} | {% endfor %}DNH Computing</title>
+        
+      <!-- CSS Stylesheets -->
+        <link rel="stylesheet" type="text/css" href="/static/main.css" />
+    <link rel="stylesheet" type="text/css" href="/static/jquery.lightbox-0.5.css" />
+    
+    <!-- Javascript Includes -->
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
+        <script type="text/javascript" src="/static/js/jquery.lightbox-0.5.min.js"></script>
+        <script type="text/javascript">
+          var _gaq = _gaq || [];
+          _gaq.push(['_setAccount', 'UA-23869001-1']);
+          _gaq.push(['_setDomainName', '.dnh.net.nz']);
+          _gaq.push(['_trackPageview']);
+        
+          (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+          })();
+        
+        </script>
+        
+  </head>
+    
+    <body>
+    <div id="banner">
+        <img src="/static/img/logo.jpg" width="580" height="90" alt="DNH Computing" />
+    </div>
+        <div id="content-frame">
+              <div id="content-wrapper">
+                  <div class="box">
+                      <div class="topl">&nbsp;</div>
+
+                      <div class="left">
+                          <div id="content">
+                            <h1>{{ page.title }}</h1>
+                            {{ page.html | safe }}
+                          </div>
+                          <div id="footer">&copy; <a href="http://dnh.net.nz">DNH Computing</a> 2016<br />Valid XHMTL 1.0 Strict and CSS2</div>
+
+                      </div>
+                      <div class="botl">&nbsp;</div>
+                  </div>
+              </div>
+          </div>
+
+        <div id="sidebar">
+            <div class="box">
+                <div class="topr">&nbsp;</div>
+                <div id="menu" class="right">
+                    <ul class="navigation">
+                        <li>
+                            <a href="/">Home</a>
+                        </li>
+                        <li>
+                            <a href="/about">About Us</a>
+                        </li>
+                        <li>
+                            <a href="/products/">Products</a>
+                            <ul>
+                                <li>
+                                    <a href="/products/strripper">StrRipper</a>
+                                </li>
+                                <li>
+                                    <a href="/products/nlogint">NLogInt</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="/contact-us">Contact Us</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="botr">&nbsp;</div>
+            </div>
+          </div>
+    </body>
+</html>
