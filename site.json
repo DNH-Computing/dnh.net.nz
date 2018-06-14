@@ -1,0 +1,157 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "Deployment for dnh.net.nz",
+	"Parameters": {
+		"DomainName": {
+			"Type": "String",
+			"Description": "Primary domain name to alias CloudFront to",
+			"Default": "dnh.net.nz"
+		},
+		"Route53ZoneName": {
+			"Type": "String",
+			"Description": "Name of an existing Zone in Route53 to add records to",
+			"AllowedPattern": ".*\\.",
+			"ConstraintDescription": "must end with a period (.)",
+			"Default": "dnh.net.nz."
+		},
+		"CertificateValidationDomain": {
+			"Type": "String",
+			"Description": "The domain to which AWS Certificate Manager will send validation emails to",
+			"Default": "dnh.net.nz"
+		}
+	},
+	"Resources": {
+		"Certificate": {
+                        "Type": "AWS::CertificateManager::Certificate",
+                        "Properties": {
+                                "DomainName": { "Ref": "DomainName" },
+                                "SubjectAlternativeNames": [{ "Ref": "DomainName" }, { "Fn::Join": [".", ["www", { "Ref": "DomainName"}]] }],
+                                "DomainValidationOptions": [
+                                        { "DomainName": { "Ref": "DomainName" }, "ValidationDomain": { "Ref": "CertificateValidationDomain" } },
+                                        { "DomainName": { "Fn::Join": [".", ["www", { "Ref": "DomainName" }]] }, "ValidationDomain": { "Ref": "CertificateValidationDomain" } }
+                                ]
+                        }
+                },
+		"WebsiteBucket": {
+			"Type": "AWS::S3::Bucket",
+			"Properties": {
+				"AccessControl": "PublicRead",
+				"WebsiteConfiguration": {
+                    "IndexDocument": "index.html",
+                    "RoutingRules": [
+                        {
+                            "RoutingRuleCondition": { "KeyPrefixEquals": "open/class/ppp" },
+                            "RedirectRule": {
+                                "Protocol": "https",
+                                "HostName": "github.com",
+                                "ReplaceKeyWith": "DNH-Computing/php-perfect-paper-passwords"
+                            }
+                        }
+                    ]
+				}
+			}
+		},
+		"WebsiteBucketPolicy": {
+			"Type": "AWS::S3::BucketPolicy",
+			"Properties": {
+				"Bucket": { "Ref": "WebsiteBucket" },
+				"PolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Sid": "PublicReadGetObject",
+							"Effect": "Allow",
+							"Principal": "*",
+							"Action": "s3:GetObject",
+							"Resource": { "Fn::Join": ["", ["arn:aws:s3:::", { "Ref": "WebsiteBucket" } , "/*" ]] }
+						}
+					]
+				}
+			}
+		},
+		"CloudFrontDistribution": {
+			"Type": "AWS::CloudFront::Distribution",
+			"Properties": {
+				"DistributionConfig": {
+					"Aliases": [{ "Ref": "DomainName" }, { "Fn::Join": [".", ["www", { "Ref": "DomainName"}]] }],
+					"CustomErrorResponses": [
+						{
+							"ErrorCode": 404,
+							"ResponseCode": 404,
+							"ResponsePagePath": "/index.html"
+						}
+					],
+					"DefaultCacheBehavior": {
+						"ForwardedValues": {
+							"QueryString": false
+						},
+						"TargetOriginId": "s3-website",
+						"ViewerProtocolPolicy": "redirect-to-https"
+					},
+					"DefaultRootObject": "index.html",
+					"Enabled": true,
+					"Origins": [
+						{
+							"CustomOriginConfig": {
+								"OriginProtocolPolicy": "http-only"
+							},
+							"DomainName": { "Fn::Join": ["", [{ "Ref": "WebsiteBucket" }, ".s3-website-", { "Ref": "AWS::Region" }, ".amazonaws.com"]] },
+							"Id": "s3-website"
+						}
+					],
+					"ViewerCertificate": {
+						"AcmCertificateArn": { "Ref": "Certificate" },
+						"MinimumProtocolVersion": "TLSv1",
+						"SslSupportMethod": "sni-only"
+					}
+				}
+			}
+		},
+		"DomainAliasRecordSet": {
+			"Type" : "AWS::Route53::RecordSet",
+			"Properties" : {
+				"AliasTarget" : {
+					"DNSName": { "Fn::GetAtt": ["CloudFrontDistribution", "DomainName"] },
+					"HostedZoneId": "Z2FDTNDATAQYW2"
+				},
+				"HostedZoneName" : { "Ref": "Route53ZoneName" },
+				"Name" : { "Ref": "DomainName" },
+				"Type" : "A"
+			}
+		},
+		"WwwDomainAliasRecordSet": {
+			"Type" : "AWS::Route53::RecordSet",
+			"Properties" : {
+				"AliasTarget" : {
+					"DNSName": { "Fn::GetAtt": ["CloudFrontDistribution", "DomainName"] },
+					"HostedZoneId": "Z2FDTNDATAQYW2"
+				},
+				"HostedZoneName" : { "Ref": "Route53ZoneName" },
+				"Name" : { "Fn::Join": [".", ["www", { "Ref": "DomainName"}]] },
+				"Type" : "A"
+			}
+		}
+	},
+	"Outputs": {
+		"S3Bucket": {
+			"Description": "S3 Bucket Name",
+			"Value": { "Ref": "WebsiteBucket" }
+		},
+		"S3Url": {
+			"Description": "URL of S3 website",
+			"Value": { "Fn::GetAtt": ["WebsiteBucket", "WebsiteURL"]}
+		},
+		"CloudFrontUrl": {
+			"Description": "URL of the raw CloudFront distribution",
+			"Value": { "Fn::Join": ["", ["https://", { "Fn::GetAtt": ["CloudFrontDistribution", "DomainName"] }]] }
+		},
+		"PrimaryUrl": {
+			"Description": "Primary URL used to access the CloudFront distribution",
+			"Value": { "Fn::Join": ["", ["https://", { "Ref": "DomainName" }]] }
+		},
+		"PrimaryWwwUrl": {
+			"Description": "Primary URL used to access the CloudFront distribution with 'www.' prefix",
+			"Value": { "Fn::Join": ["", ["https://www.", { "Ref": "DomainName" }]] }
+		}
+	}
+}
